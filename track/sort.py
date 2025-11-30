@@ -14,7 +14,7 @@ class SORT(BaseTracker):
         self.frame_count = 0
         self.cost_function = cost_function
     
-    def _associate_detections_to_trackers(self, detections, trackers, iou_threshold = 0.3):
+    def _associate_detections_to_trackers(self, detections, trackers):
         """Assigns detections to tracked object
 
         Args:
@@ -32,7 +32,7 @@ class SORT(BaseTracker):
         cost_matrix = self.cost_function(detections[:, np.newaxis], trackers[np.newaxis, :])
 
         if min(cost_matrix.shape) > 0:
-            a = (cost_matrix > iou_threshold).astype(np.int32)
+            a = (cost_matrix > self.iou_threshold).astype(np.int32)
             if a.sum(1).max() == 1 and a.sum(0).max() == 1:
                 matched_indices = np.stack(np.where(a), axis=1)
             else:
@@ -52,7 +52,7 @@ class SORT(BaseTracker):
 
         matches = []
         for m in matched_indices:
-            if (cost_matrix[m[0], m[1]] < iou_threshold):
+            if (cost_matrix[m[0], m[1]] < self.iou_threshold):
                 unmatched_detections.append(m[0])
                 unmatched_trackers.append(m[1])
             else:
