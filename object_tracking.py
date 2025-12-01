@@ -2,8 +2,8 @@ from ultralytics import YOLO
 from track.sort import SORT
 from track.bytetrack import ByteTrack
 from detect.detect import inference_video
-from track.utils import ciou 
-from utils import process_and_write_frame, parse_args_tracking
+from track.utils import ciou, iou
+from utils import process_and_write_frame, parse_args_tracking, handle_video_capture, handle_result_filename
 import cv2
 import numpy as np
 import os
@@ -14,21 +14,18 @@ if __name__ == "__main__":
     args = parse_args_tracking()
 
     # Prepare output paths
-    data_path_name = os.path.splitext(os.path.basename(args.data_path))
-    base_name = data_path_name[0]
-    ext = data_path_name[1]
-    result_filename = f"{base_name}_{args.tracker}{ext}"
-    video_result_path = os.path.join(args.output_dir, "video", result_filename)
-    csv_result_path = os.path.join(args.output_dir, "csv", f"{base_name}_{args.tracker}.csv")
+    result_filename, ext = handle_result_filename(args.data_path, args.tracker)
+    video_result_path = os.path.join(args.output_dir, "video", result_filename + ext)
+    csv_result_path = os.path.join(args.output_dir, "csv", result_filename + ".csv")
     os.makedirs(args.output_dir, exist_ok=True)
     os.makedirs(os.path.join(args.output_dir, "video"), exist_ok=True)
     os.makedirs(os.path.join(args.output_dir, "csv"), exist_ok=True)
 
     if args.tracker == 'sort':
-        tracker_instance = SORT(cost_function=ciou, max_age=60, min_hits=5, iou_threshold=0.3)
+        tracker_instance = SORT(cost_function=iou, max_age=60, min_hits=5, iou_threshold=0.5)
         conf_threshold = 0.25
     elif args.tracker == 'bytetrack':
-        tracker_instance = ByteTrack(cost_function=ciou, max_age=60, min_hits=5, high_conf_threshold=0.5)
+        tracker_instance = ByteTrack(cost_function=iou, max_age=60, min_hits=5, high_conf_threshold=0.5)
         conf_threshold = 0.1
     else:
         raise ValueError(f"Unknown tracker: {args.tracker}")
@@ -39,11 +36,7 @@ if __name__ == "__main__":
     np.random.seed(42)
 
     # Setup VideoWriter and display Window
-    cap = cv2.VideoCapture(data_path)
-    FRAME_WIDTH = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    FRAME_HEIGHT = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    FPS = cap.get(cv2.CAP_PROP_FPS)
-    cap.release()
+    FRAME_WIDTH, FRAME_HEIGHT, FPS = handle_video_capture(data_path)
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     video_writer = cv2.VideoWriter(video_result_path, fourcc, FPS, (FRAME_WIDTH, FRAME_HEIGHT))
     cv2.namedWindow("Tracking Results", cv2.WINDOW_AUTOSIZE)

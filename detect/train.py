@@ -1,5 +1,4 @@
 from ultralytics import YOLO
-import cv2
 import argparse
 
 if __name__ == "__main__":
@@ -40,4 +39,4 @@ if __name__ == "__main__":
                 mixup=0.0,
                 close_mosaic=10,
                 name=args.name
-                )
+            )
