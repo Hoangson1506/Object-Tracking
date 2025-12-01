@@ -3,7 +3,7 @@ from track.sort import SORT
 from track.bytetrack import ByteTrack
 from detect.detect import inference_video
 from track.utils import ciou 
-from utils import process_and_write_frame, parse_args
+from utils import process_and_write_frame, parse_args_tracking
 import cv2
 import numpy as np
 import os
@@ -11,7 +11,7 @@ import csv
 
 
 if __name__ == "__main__":
-    args = parse_args()
+    args = parse_args_tracking()
 
     # Prepare output paths
     data_path_name = os.path.splitext(os.path.basename(args.data_path))
@@ -28,7 +28,7 @@ if __name__ == "__main__":
         tracker_instance = SORT(cost_function=ciou, max_age=60, min_hits=5, iou_threshold=0.3)
         conf_threshold = 0.25
     elif args.tracker == 'bytetrack':
-        tracker_instance = ByteTrack(cost_function=ciou, max_age=60, min_hits=5, high_conf_threshold=0.3)
+        tracker_instance = ByteTrack(cost_function=ciou, max_age=60, min_hits=5, high_conf_threshold=0.5)
         conf_threshold = 0.1
     else:
         raise ValueError(f"Unknown tracker: {args.tracker}")
