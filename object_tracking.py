@@ -3,7 +3,7 @@ from track.sort import SORT
 from track.bytetrack import ByteTrack
 from detect.detect import inference_video
 from track.utils import ciou, iou
-from utils import process_and_write_frame, parse_args_tracking, handle_video_capture, handle_result_filename
+from utils import process_and_write_frame, parse_args_tracking, handle_video_capture, handle_result_filename, select_zones
 import cv2
 import numpy as np
 import os
@@ -36,7 +36,8 @@ if __name__ == "__main__":
     np.random.seed(42)
 
     # Setup VideoWriter and display Window
-    FRAME_WIDTH, FRAME_HEIGHT, FPS = handle_video_capture(data_path)
+    FRAME_WIDTH, FRAME_HEIGHT, FPS, first_frame, ret = handle_video_capture(data_path)
+    select_zones(first_frame)
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     video_writer = cv2.VideoWriter(video_result_path, fourcc, FPS, (FRAME_WIDTH, FRAME_HEIGHT))
     cv2.namedWindow("Tracking Results", cv2.WINDOW_AUTOSIZE)

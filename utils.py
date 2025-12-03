@@ -5,6 +5,67 @@ import os
 import re
 import glob
 
+def select_zones(first_frame):
+    """Interactive mode to draw line and RoI zones
+
+    Args:
+        first_frame(ArrayLike, np.ndarray): The first frame of the video
+    """
+    drawing_points = []
+    polygon_points = []
+    line_points = []
+    MODE = "POLYGON"
+
+    def mouse_callback(event, x, y, flags, param):
+        nonlocal drawing_points
+
+        if event == cv2.EVENT_LBUTTONDOWN:
+            drawing_points.append((x, y))
+            print(f"Đã chọn điểm: ({x}, {y})")
+
+    window_name = "Configuration: Draw POLYGON -> Press 'n' -> Draw LINE -> Press 'q'"
+    cv2.namedWindow(window_name)
+    cv2.setMouseCallback(window_name, mouse_callback)
+
+    print("--- Tutorial ---")
+    print("1. Left mouse click to choose POLYGON points (RoI Region)")
+    print("2. Press 'n' to save POLYGON and change to drawing LINE")
+    print("3. Press 'q' to complete")
+
+    while True:
+        display_frame = first_frame.copy()
+
+        for pt in drawing_points:
+            cv2.circle(display_frame, pt, 5, (0, 255, 0), -1)
+
+        if len(polygon_points) > 0:
+            pts = np.array(polygon_points, np.int32).reshape((-1, 1, 2))
+            cv2.polylines(display_frame, [pts], True, (255, 0, 0), 2)
+        elif len(drawing_points) > 1 and MODE == "POLYGON":
+            pts = np.array(polygon_points, np.int32).reshape((-1, 1, 2))
+            cv2.polylines(display_frame, [pts], True, (255, 0, 0), 2)
+
+        if len(drawing_points) > 1 and MODE == "LINE":
+            cv2.line(display_frame, drawing_points[0], drawing_points[1], (0, 0, 255), 2)
+
+        cv2.imshow(window_name, display_frame)
+        key = cv2.waitKey(1) & 0xFF
+
+        if key == ord('n') and MODE == "POLYGON":
+            if len(drawing_points) > 2:
+                polygon_points = drawing_points
+                drawing_points = []
+                MODE = "LINE"
+                print("Polygon saved, now to Line")
+
+        elif key == ord('q'):
+            if MODE == "LINE" and len(drawing_points) >= 2:
+                line_points = [drawing_points[0], drawing_points[1]]
+
+            break
+
+    cv2.destroyAllWindows()
+
 def process_and_write_frame(frame_id, result, tracker, video_writer):
     """Process a single detection result, update the tracker, draws bbox, writes the frame and returns the tracked objects
 
@@ -84,20 +145,19 @@ def handle_video_capture(data_path):
 
         if len(img_files) == 0:
             raise ValueError(f"No images found in directory: {data_path}")
-        cap = cv2.VideoCapture(img_files[0])
-        FRAME_WIDTH = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        FRAME_HEIGHT = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        FPS = 30  # Default FPS for image sequences
-        cap.release()
+        file_path = img_files[0]
 
     else:
-        cap = cv2.VideoCapture(data_path)
-        FRAME_WIDTH = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        FRAME_HEIGHT = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        FPS = cap.get(cv2.CAP_PROP_FPS)
-        cap.release()
+        file_path = data_path
 
-    return FRAME_WIDTH, FRAME_HEIGHT, FPS
+    cap = cv2.VideoCapture(file_path)
+    ret, frame = cap.read()
+    FRAME_WIDTH = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    FRAME_HEIGHT = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    FPS = cap.get(cv2.CAP_PROP_FPS)
+    cap.release()
+
+    return FRAME_WIDTH, FRAME_HEIGHT, FPS, frame, ret
 
 
 def parse_args_tracking():

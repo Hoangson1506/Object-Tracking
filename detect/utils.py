@@ -4,7 +4,7 @@ import configparser
 
 CLASS_ID = 0
 
-def convert_sequence(seq_path, output_path, split, seq):
+def convert_sequence(seq_path, output_path, split, seq, min_vis=0, class_ids=[1]):
     img_dir = os.path.join(seq_path, "img1")
     gt_path = os.path.join(seq_path, "gt", "gt.txt")
     seqinfo = os.path.join(seq_path, "seqinfo.ini")
@@ -51,11 +51,11 @@ def convert_sequence(seq_path, output_path, split, seq):
             vis = float(parts[8])
 
             # MOT Class 1 = Pedestrian. Usually we ignore cars/static objects for human tracking.
-            if cls_id != 1: 
+            if cls_id not in class_ids: 
                 continue
             
             # Filter low visibility or invalid boxes
-            if w <= 1 or h <= 1 or vis <= 0:
+            if w <= 1 or h <= 1 or vis <= min_vis:
                 continue
 
             anns.setdefault(frame, []).append((x, y, w, h))
@@ -95,3 +95,15 @@ def convert_sequence(seq_path, output_path, split, seq):
                     nh = max(0, min(1, nh))
 
                     out.write(f"{CLASS_ID} {xc:.6f} {yc:.6f} {nw:.6f} {nh:.6f}\n")
+
+def generate_data_yaml(output_path, nc=1, names=None):
+    if names is None:
+        names=['pedestrian']
+
+    data_yaml_path = os.path.join(output_path, "data.yaml")
+    with open(data_yaml_path, "w") as f:
+        f.write(f"path: {output_path}\n\n")
+        f.write(f"train: images/train\n")
+        f.write(f"val: images/val\n\n")
+        f.write(f"nc: {nc}\n\n")
+        f.write(f"names: {names}\n")

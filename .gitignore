@@ -53,6 +53,7 @@ target/
 *.log
 data/
 output/
+runs/
 
 # Credentials and secrets
 *.key
