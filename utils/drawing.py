@@ -2,79 +2,141 @@ import cv2
 import numpy as np
 import supervision as sv
 
-def select_zones(first_frame):
-    """Interactive mode to draw line and RoI zones
+def draw_polygon_zone(frame: np.ndarray):
+    """
+    Interactive mode to draw a Polygon Zone (Region of Interest, RoI).
+    
+    The user uses mouse clicks to define vertices.
+    Press 'n' to save the polygon (requires ≥ 3 points). 
+    Press 'ESC' to cancel.
 
     Args:
-        first_frame(ArrayLike, np.ndarray): The first frame of the video
+        frame (np.ndarray): The video frame used as the canvas.
 
     Return:
-        polygon_points (list): List of points of the RoI (N, 2)
-        line_points (list): List of points of the line (2, 2)
+        drawing_points: A list of points defining the RoI polygon (N, 2). 
+                    Returns [] if cancelled.
     """
+    
+    zone_name = "POLYGON_ROI"
     drawing_points = []
-    polygon_points = []
-    line_points = []
-    MODE = "POLYGON"
-
+    
     def mouse_callback(event, x, y, flags, param):
         nonlocal drawing_points
-
         if event == cv2.EVENT_LBUTTONDOWN:
             drawing_points.append((x, y))
-            print(f"Đã chọn điểm: ({x}, {y})")
+            print(f"[{zone_name}] Point selected: ({x}, {y})")
 
-    window_name = "Configuration: Draw POLYGON -> Press 'n' -> Draw LINE -> Press 'q'"
+    window_name = f"Configuration: Draw {zone_name} -> Press 'n' to save"
     cv2.namedWindow(window_name)
     cv2.setMouseCallback(window_name, mouse_callback)
 
-    print("--- Tutorial ---")
+    print(f"\n--- [TUTORIAL] {zone_name} ---")
     print("1. Left mouse click to choose POLYGON points (RoI Region)")
-    print("2. Press 'n' to save POLYGON and change to drawing LINE")
-    print("3. Press 'q' to complete")
+    print("2. Press 'n' to save the polygon (Needs ≥ 3 points)")
+    print("3. Press 'ESC' to cancel")
 
     while True:
-        display_frame = first_frame.copy()
+        display_frame = frame.copy()
 
+        # Draw selected points
         for pt in drawing_points:
             cv2.circle(display_frame, pt, 5, (0, 255, 0), -1)
 
-        if len(polygon_points) >= 3:
-            pts = np.array(polygon_points, np.int32).reshape((-1, 1, 2))
+        # Draw the polygon if enough points are selected (>= 3)
+        if len(drawing_points) >= 3:
+            pts = np.array(drawing_points, np.int32).reshape((-1, 1, 2))
+            # Draw the connected, closed polygon (True)
             cv2.polylines(display_frame, [pts], True, (255, 0, 0), 2)
-
-        if len(line_points) == 2:
-            cv2.line(display_frame, line_points[0], line_points[1], (0, 0, 255), 2)
-
+        
         cv2.putText(display_frame,
-                    f"MODE: {'POLYGON' if MODE == "POLYGON" else 'LINE'}",
-                    (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 1,
-                    (0, 255, 255), 2)
+                    f"MODE: {zone_name} | Points: {len(drawing_points)}",
+                    (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8,
+                    (255, 255, 0), 2)
         cv2.imshow(window_name, display_frame)
         key = cv2.waitKey(1) & 0xFF
 
-        if key == 27:
-            print("ESC pressed → exit")
-            break
+        if key == 27:  # ESC
+            print(f"ESC pressed → {zone_name} cancelled")
+            cv2.destroyWindow(window_name)
+            return []
 
-        if key == ord('n') and MODE == "POLYGON":
+        if key == ord('n'):
             if len(drawing_points) < 3:
-                print("Polygon needs ≥ 3 points!")
+                print(f"[{zone_name}] Requires at least 3 points for a polygon!")
                 continue
-            polygon_points = drawing_points.copy()
-            drawing_points.clear()
-            MODE = "LINE"
-            print("Polygon saved, now to Line")
+            
+            print(f"[{zone_name}] Polygon saved with {len(drawing_points)} points.")
+            cv2.destroyWindow(window_name)
+            return drawing_points
 
-        elif key == ord('q'):
+# --- FUNCTION 2: DRAW LINE ZONE (Boundary Line) ---
+
+def draw_line_zone(frame: np.ndarray):
+    """
+    Interactive mode to draw a Line Zone (Boundary/Crossing Line).
+    
+    The user must define exactly 2 points.
+    Press 'q' to save the line. Press 'ESC' to cancel.
+
+    Args:
+        frame (np.ndarray): The video frame used as the canvas.
+
+    Return:
+        drawing_points: A list of 2 points defining the line. Returns [] if cancelled.
+    """
+    
+    zone_name = "LINE_ZONE"
+    drawing_points = []
+    
+    def mouse_callback(event, x, y, flags, param):
+        nonlocal drawing_points
+        if event == cv2.EVENT_LBUTTONDOWN:
+            # Only allow selecting up to 2 points
             if len(drawing_points) < 2:
-                print("Line needs exactly 2 points!")
-                continue
-            line_points = drawing_points[:2]
-            print("Line saved → Done")
+                drawing_points.append((x, y))
+                print(f"[{zone_name}] Point selected: ({x}, {y})")
 
-    cv2.destroyAllWindows()
-    return polygon_points, line_points
+    window_name = f"Configuration: Draw {zone_name} -> Press 'q' to save"
+    cv2.namedWindow(window_name)
+    cv2.setMouseCallback(window_name, mouse_callback)
+
+    print(f"\n--- [TUTORIAL] {zone_name} ---")
+    print("1. Left mouse click to choose 2 points for the LINE")
+    print("2. Press 'q' to save the line")
+    print("3. Press 'ESC' to cancel")
+
+    while True:
+        display_frame = frame.copy()
+
+        # Draw selected points
+        for pt in drawing_points:
+            cv2.circle(display_frame, pt, 5, (0, 0, 255), -1)
+
+        # Draw the line if 2 points are selected
+        if len(drawing_points) == 2:
+            cv2.line(display_frame, drawing_points[0], drawing_points[1], (0, 0, 255), 2)
+        
+        cv2.putText(display_frame,
+                    f"MODE: {zone_name} | Points: {len(drawing_points)}/2",
+                    (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8,
+                    (255, 255, 0), 2)
+        cv2.imshow(window_name, display_frame)
+        key = cv2.waitKey(1) & 0xFF
+
+        if key == 27: # ESC
+            print(f"ESC pressed → {zone_name} cancelled")
+            cv2.destroyWindow(window_name)
+            return []
+
+        if key == ord('q'):
+            if len(drawing_points) != 2:
+                print(f"[{zone_name}] Requires exactly 2 points for a line!")
+                continue
+            
+            print(f"[{zone_name}] Line saved.")
+            cv2.destroyWindow(window_name)
+            return drawing_points
 
 
 def draw_and_write_frame(tracked_objs, frame, sv_detections, line_zone, box_annotator, label_annotator, line_zone_annotator, video_writer):

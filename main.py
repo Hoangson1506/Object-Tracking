@@ -5,7 +5,7 @@ from detect.detect import inference_video
 from track.utils import ciou, iou
 from core.vehicle import Vehicle
 from utils.parse_args import parse_args_tracking
-from utils.drawing import select_zones, draw_and_write_frame
+from utils.drawing import draw_polygon_zone, draw_line_zone, draw_and_write_frame
 from utils.io import handle_result_filename, handle_video_capture
 from detect.utils import preprocess_detection_result
 import cv2
@@ -42,9 +42,10 @@ if __name__ == "__main__":
 
     # Setup VideoWriter and display Window
     FRAME_WIDTH, FRAME_HEIGHT, FPS, first_frame, ret = handle_video_capture(data_path)
-    polygon_points, line_points = select_zones(first_frame)
+    polygon_points = draw_polygon_zone(first_frame)
     polygon_points = np.array(polygon_points, dtype=int)
     polygon_zone = sv.PolygonZone(polygon_points)
+    line_points = draw_line_zone(first_frame)
     start, end = sv.Point(x=line_points[0][0], y = line_points[0][1]), sv.Point(x=line_points[1][0], y = line_points[1][1])
     line_zone = sv.LineZone(start=start, end=end)
 
