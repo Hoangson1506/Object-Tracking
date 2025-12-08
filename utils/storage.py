@@ -76,8 +76,10 @@ class MinioClient:
         """
         Save violation proof to MinIO
         """
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"{violation_type}_{vehicle_id}_{timestamp}.jpg"
+        time_now = datetime.now()
+        date_folder = time_now.strftime("%Y_%m")
+        timestamp = time_now.strftime("%Y%m%d_%H%M%S")
+        filename = f"{date_folder}/{violation_type}_{vehicle_id}_{timestamp}.jpg"
         return self.upload_image_from_memory(frame, self.buckets['proofs'], filename)
 
     def save_retraining_data(self, frame, vehicle_id, bbox):
@@ -121,8 +123,10 @@ class MinioClient:
         """
         Save a full frame with the bounding box drawn on it as proof.
         """
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"{violation_type}_{vehicle_id}_{timestamp}_labeled.jpg"
+        time_now = datetime.now()
+        date_folder = time_now.strftime("%Y_%m")
+        timestamp = time_now.strftime("%Y%m%d_%H%M%S")
+        filename = f"{date_folder}/{violation_type}_{vehicle_id}_{timestamp}_labeled.jpg"
         
         # Draw bbox
         labeled_frame = frame.copy()
@@ -139,9 +143,11 @@ class MinioClient:
         """
         if not frames:
             return False
-            
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"{violation_type}_{vehicle_id}_{timestamp}.mp4"
+        
+        time_now = datetime.now()
+        date_folder = time_now.strftime("%Y_%m")
+        timestamp = time_now.strftime("%Y%m%d_%H%M%S")
+        filename = f"{date_folder}/{violation_type}_{vehicle_id}_{timestamp}.mp4"
         
         # Create temp file
         import tempfile

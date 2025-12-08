@@ -17,7 +17,7 @@ class Vehicle(KalmanBoxTracker):
         self.license_plate = None
         self.proof = [] # np.array (Crop images)
 
-    def mark_violation(self, violation_type, frame=None, padding=None, frame_buffer=None, fps=30):
+    def mark_violation(self, violation_type, frame=None, padding=None, frame_buffer=None, fps=30, save_queue=None):
         if padding is None:
             padding = config['violation']['padding']
         if not self.has_violated:
@@ -33,12 +33,17 @@ class Vehicle(KalmanBoxTracker):
                                    max(0, x1 - padding):min(w, x2 + padding)].copy()
                 
                 # Save proof and retraining data
-                MinioClient().save_proof(self.proof, self.id, violation_type)
-                MinioClient().save_retraining_data(frame, self.id, (x1, y1, x2, y2))
+                identifier = self.license_plate if self.license_plate else self.id
                 
-                # Save labeled proof
-                MinioClient().save_labeled_proof(frame, self.id, violation_type, (x1, y1, x2, y2))
-                
-                # Save video proof
-                if frame_buffer:
-                    MinioClient().save_video_proof(list(frame_buffer), self.id, violation_type, fps)
+                violation_data = {
+                    'vehicle_id': self.id,
+                    'identifier': identifier,
+                    'violation_type': violation_type,
+                    'frame': frame.copy(),
+                    'bbox': (x1, y1, x2, y2),
+                    'frame_buffer': list(frame_buffer) if frame_buffer else [],
+                    'fps': fps,
+                    'proof_crop': self.proof
+                }
+
+                save_queue.put(violation_data)

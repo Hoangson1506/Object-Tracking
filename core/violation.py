@@ -40,10 +40,11 @@ class RedLightViolation(Violation):
         is_violated_mask = crossed_in | crossed_out
         violation_indices = np.where(is_violated_mask)[0]
         violated_vehicles = []
+        save_queue = kwargs.get('save_queue')
 
         for i, vehicle in enumerate(vehicles):
             if i in violation_indices and hasattr(vehicle, 'mark_violation'):
-                vehicle.mark_violation("Red Light", frame=frame, frame_buffer=kwargs.get('frame_buffer'), fps=kwargs.get('fps', 30))
+                vehicle.mark_violation("Red Light", frame=frame, frame_buffer=kwargs.get('frame_buffer'), fps=kwargs.get('fps', 30), save_queue=save_queue)
                 violated_vehicles.append(vehicle)
 
         return violated_vehicles

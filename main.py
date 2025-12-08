@@ -15,8 +15,41 @@ import numpy as np
 import supervision as sv
 import os
 import csv
+import threading
+import queue
+from utils.storage import MinioClient
 from collections import deque
 
+def violation_save_worker(save_queue):
+    client = MinioClient()
+
+    while True:
+        data = save_queue.get()
+        if data is None: # The None data is just a way to stop the worker
+            break
+
+        try:
+            vehicle_id = data['vehicle_id']
+            identifier = data['identifier'] # license plate or vehicle id
+            violation_type = data['violation_type']
+            frame = data['frame']
+            bbox = data['bbox']
+            frame_buffer = data['frame_buffer']
+            fps = data['fps']
+            proof_crop = data['proof_crop']
+
+            client.save_proof(proof_crop, identifier, violation_type)
+            client.save_retraining_data(frame, vehicle_id, bbox)
+            client.save_retraining_data(frame, identifier, violation_type, bbox)
+            
+            if frame_buffer:
+                client.save_video_proof(frame_buffer, identifier, violation_type, fps)
+            
+            print(f"[Worker] Saved violation for ID: {identifier}")
+        except Exception as e:
+            print(f"[Worker] Error saving violation: {e}")
+        finally:
+            save_queue.task_done()
 
 if __name__ == "__main__":
     args = parse_args_tracking()
@@ -64,6 +97,9 @@ if __name__ == "__main__":
     data_path = args.data_path
     model = YOLO(args.model, task='detect', verbose=True)
     device = args.device
+    violation_queue = queue.Queue()
+    worker_thread = threading.Thread(target=violation_save_worker,args=(violation_queue,), daemon=True)
+    worker_thread.start()
     np.random.seed(42)
 
     # Setup VideoWriter and display Window
@@ -91,7 +127,7 @@ if __name__ == "__main__":
         stream=True,
         conf_threshold=conf_threshold,
         classes=config['detections']['classes'],
-        input_size=config['detections']['input_size'],
+        imgsz=config['detections']['input_size'],
         iou_threshold=config['detections']['iou_threshold']
     )
     csv_results = []
@@ -131,7 +167,7 @@ if __name__ == "__main__":
         frame_buffer.append(frame.copy())
 
         # Update violation manager
-        violation_manager.update(vehicles=tracked_objs, sv_detections=sv_detections, frame=frame, frame_buffer=frame_buffer, fps=FPS)
+        violation_manager.update(vehicles=tracked_objs, sv_detections=sv_detections, frame=frame, frame_buffer=frame_buffer, fps=FPS, save_queue=violation_queue)
         
         draw_and_write_frame(tracked_objs, frame, sv_detections, box_annotator, label_annotator, video_writer)
 
