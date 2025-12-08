@@ -24,8 +24,9 @@ class MinioClient:
         
         # Try to load from env if available
         # In a real app, use python-dotenv or os.environ
-        self.access_key = os.environ.get("MINIO_ROOT_USER", "minioadmin")
-        self.secret_key = os.environ.get("MINIO_ROOT_PASSWORD", "minioadmin")
+        self.endpoint_url = os.environ.get("MINIO_ENDPOINT", "http://localhost:9000")
+        self.access_key = os.environ.get("MINIO_ACCESS_KEY", "minioadmin")
+        self.secret_key = os.environ.get("MINIO_SECRET_KEY", "minioadmin")
 
         self.s3 = boto3.client(
             's3',
