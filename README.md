@@ -1,33 +1,22 @@
 # Traffic Violation Detection System
 
-This project is a computer vision application designed to detect traffic violations, specifically red light violations, using deep learning and object tracking techniques. It utilizes YOLO for object detection and supports SORT and ByteTrack for object tracking.
+A robust computer vision system for detecting traffic violations, specifically red light violations, using YOLOv8 for object detection and SORT/ByteTrack for object tracking.
 
 ## Features
 
--   **Object Detection**: Real-time vehicle detection using Ultralytics YOLO (default: `yolo12n.pt`).
--   **Object Tracking**: Robust vehicle tracking using SORT or ByteTrack algorithms.
--   **Violation Detection**: Automatically identifies vehicles crossing a designated line or zone during a red light phase.
--   **Visualization**: Comprehensive visual output with bounding boxes, tracking IDs, detection zones, and status annotators using `supervision`.
--   **Data Storage**: Integration with MinIO for robust storage of video proofs and results.
--   **Evaluation**: Built-in tools to evaluate tracking performance against ground truth data using `motmetrics`.
-
-## Project Structure
-
--   `core/`: Contains core logic for vehicle and violation definitions.
--   `detect/`: Modules for running object detection inference.
--   `track/`: Implementations of SORT and ByteTrack trackers.
--   `utils/`: Utility scripts for I/O, config loading, drawing, and argument parsing.
--   `benchmark/`: Metrics and evaluation tools.
--   `config.yaml`: Configuration file for detection, tracking, and violation parameters.
--   `main.py`: The entry point for the application.
+-   **Vehicle Detection**: Detects cars, motorcycles, buses, and trucks using YOLOv8.
+-   **Object Tracking**: Supports SORT and ByteTrack algorithms for robust vehicle tracking.
+-   **Violation Detection**: Identifies vehicles crossing a defined line during a red light phase.
+-   **Video Proof**: Generates video clips of detected violations.
+-   **Data Logging**: Saves violation details (frame, coordinates, ID) to CSV.
+-   **Visualizations**: Draws bounding boxes, tracking IDs, and violation zones on the output video.
 
 ## Installation
 
 ### Prerequisites
 
--   Python 3.8+
--   Docker and Docker Compose (for MinIO)
--   CUDA-compatible GPU (recommended for performance)
+-   Python 3.8 or higher
+-   CUDA-compatible GPU (recommended for real-time performance)
 
 ### Setup
 
@@ -38,93 +27,73 @@ This project is a computer vision application designed to detect traffic violati
     ```
 
 2.  **Install dependencies:**
-    You can use the provided setup script or install requirements manually.
+    You can use the provided helper script or install manually.
 
-    ```bash
-    bash start.sh
-    ```
-    *Or manually:*
-    ```bash
-    python3 -m venv .venv
-    source .venv/bin/activate
-    pip install -r requirements.txt
-    ```
+    *   **Using script:**
+        ```bash
+        chmod +x start.sh
+        ./start.sh
+        ```
 
-3.  **Start MinIO Service:**
-    This project uses MinIO for data storage. Start it using Docker Compose:
-    ```bash
-    To start the entire stack (MinIO + Traffic Monitor):
-    ```bash
-    docker-compose up -d
-    ```
-    *Note: The `traffic-monitor` service is configured to expect a GPU by default.*
+    *   **Manual installation:**
+        ```bash
+        python3 -m venv .venv
+        source .venv/bin/activate
+        pip install --upgrade pip
+        pip install -r requirements.txt
+        ```
 
-4.  **Docker Support (Manual Run):**
+## Configuration
 
-    Build the Docker image:
-    ```bash
-    docker build -t traffic-monitor .
-    ```
+The system is highly configurable via `config.yaml`.
 
-    Run with GPU (requires [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)):
-    ```bash
-    docker run --gpus all -v $(pwd)/data:/app/data -v $(pwd)/output:/app/output traffic-monitor python main.py --device cuda --data_path data/video.mp4 --save True
-    ```
+### Detection (`detections`)
+-   `conf_threshold`: Confidence threshold for YOLO detections (default: 0.25).
+-   `iou_threshold`: IOU threshold for NMS (default: 0.5).
+-   `classes`: List of COCO class IDs to detect (e.g., `[2, 3, 5, 7]` for vehicles).
+-   `input_size`: Input image size for the model (default: 640).
 
-    Run with CPU:
-    ```bash
-    docker run -v $(pwd)/data:/app/data -v $(pwd)/output:/app/output traffic-monitor python main.py --device cpu --data_path data/video.mp4 --save True
-    ```
+### Tracking (`tracking`)
+Configure parameters for `sort` or `bytetrack` (e.g., `max_age`, `min_hits`, `iou_threshold`).
+
+### Violation (`violation`)
+-   `video_proof_duration`: Duration (in seconds) of the video clip saved for each violation.
 
 ## Usage
 
-### Running the Tracker
-
-Use `main.py` to process a video file.
+Run the main script with the desired arguments:
 
 ```bash
-python main.py --data_path data/video.mp4 --device cuda
+python main.py --model <path_to_model> --data_path <path_to_video> [options]
 ```
 
-**Arguments:**
+### Arguments
 
--   `--data_path`: Path to the input video file (default: `data/MOT16 test video/MOT16-01-raw.mp4`).
--   `--model`: Path to the YOLO model weights (default: `yolo12n.pt`).
--   `--tracker`: Tracking algorithm to use: `sort` or `bytetrack` (default: `sort`).
--   `--output_dir`: Directory to save the resulting video and CSV (default: `output`).
--   `--save`: Save processed video: `True` or `False` (default: `True`).
--   `--device`: computation device: `cuda` or `cpu` (default: `cuda`).
+-   `--model`: Path to the YOLOv8 model file (default: `yolov8n.pt`).
+-   `--data_path`: Path to the input video file (required).
+-   `--output_dir`: Directory to save results (default: `output`).
+-   `--device`: Device to run inference on (default: `cuda:0`).
+-   `--tracker`: Tracker to use: `sort` or `bytetrack` (default: `bytetrack`).
+-   `--save`: Save tracking results to CSV (`True`/`False`, default: `False`).
 
-**Example:**
+### Example
 
 ```bash
-python main.py --data_path data/traffic_cam.mp4 --tracker bytetrack --model yolo12n.pt
+# Run with ByteTrack and save results
+python main.py --model yolov8n.pt --data_path data/traffic.mp4 --tracker bytetrack --save True
 ```
 
-### Configuration
+## Project Structure
 
-You can fine-tune detection, tracking, and violation parameters in `config.yaml`.
+-   `core/`: Core logic for vehicle and violation classes.
+-   `detect/`: YOLOv8 inference and detection utilities.
+-   `track/`: Implementation of SORT and ByteTrack algorithms.
+-   `utils/`: Helper functions for drawing, IO, and configuration.
+-   `main.py`: Entry point of the application.
 
--   **`detections`**: Confidence and IoU thresholds, target classes.
--   **`tracking`**: Specific parameters for SORT (max_age, min_hits) and ByteTrack.
--   **`violation`**: Video proof duration, default FPS, padding.
+## Output
 
-### Evaluation
+Results are saved in the `output/` directory (or as specified by `--output_dir`):
 
-To evaluate the tracking performance against ground truth data (MOT format):
-
-```bash
-python evaluate.py --pred_path output/csv/result.csv --gt_path data/gt.txt
-```
-
-**Arguments:**
-
--   `--pred_path`: Path to the tracking output CSV.
--   `--gt_path`: Path to the ground truth text file.
--   `--metrics`: List of metrics to compute (e.g., `mota`, `idf1`).
-
-## Results
-
-The system outputs:
-1.  **Video**: An annotated video file in `output/video/` showing tracked vehicles and violations.
-2.  **CSV**: A CSV file in `output/csv/` containing tracking data and violation status for each frame.
+-   `video/`: Processed video with annotations.
+-   `csv/`: CSV file containing tracking data and violation flags.
