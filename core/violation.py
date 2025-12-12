@@ -10,7 +10,7 @@ class Violation:
     def __init__(self, name: str, **kwargs):
         self.name = name
 
-    def check_violation(self, vehicles: List[Vehicle]):
+    def check_violation(self, recognizer, vehicles: List[Vehicle]):
         """Check violation of vehicles
 
         Args:
@@ -25,7 +25,7 @@ class RedLightViolation(Violation):
         super().__init__(name="RedLightViolation")
         self.draw_line(kwargs.get('frame', None), kwargs.get('window_name', "Traffic Violation Detection"))
 
-    def check_violation(self, vehicles: List[Vehicle], sv_detections: sv.Detections, frame, traffic_light_state: str = "RED", **kwargs):
+    def check_violation(self, recognizer, vehicles: List[Vehicle], sv_detections: sv.Detections, frame, traffic_light_state: str = "RED", **kwargs):
         """Check the violation state of vehicles tracked
 
         Args:
@@ -44,7 +44,7 @@ class RedLightViolation(Violation):
 
         for i, vehicle in enumerate(vehicles):
             if i in violation_indices and hasattr(vehicle, 'mark_violation'):
-                vehicle.mark_violation("Red Light", frame=frame, frame_buffer=kwargs.get('frame_buffer'), fps=kwargs.get('fps', 30), save_queue=save_queue)
+                vehicle.mark_violation("Red Light", recognizer, frame=frame, frame_buffer=kwargs.get('frame_buffer'), fps=kwargs.get('fps', 30), save_queue=save_queue)
                 violated_vehicles.append(vehicle)
 
         return violated_vehicles
