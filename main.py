@@ -76,7 +76,7 @@ if __name__ == "__main__":
     FRAME_WIDTH, FRAME_HEIGHT, FPS, first_frame, ret = handle_video_capture(data_path)
     polygon_points = draw_polygon_zone(first_frame, window_name)
     polygon_points = np.array(polygon_points, dtype=int)
-    polygon_zone = sv.PolygonZone(polygon_points) if len(polygon_points) >= 3 else None
+    polygon_zone = sv.PolygonZone(polygon_points, triggering_anchors=[sv.Position.CENTER]) if len(polygon_points) >= 3 else None
 
     # supervision annotator for visualization
     box_annotator = sv.BoxAnnotator(thickness=2)
@@ -107,11 +107,11 @@ if __name__ == "__main__":
     frame_buffer = deque(maxlen=buffer_maxlen)
 
     # Set up violation manager and violation types
-    violations = [RedLightViolation(frame=first_frame, window_name=window_name)]
+    violations = [RedLightViolation(polygon_points=polygon_points, frame=first_frame, window_name=window_name)]
     violation_manager = ViolationManager(violations=violations)
 
     for i, result in enumerate(dets):
-        frame, det = preprocess_detection_result(result, polygon_zone)
+        frame, det = preprocess_detection_result(result)
 
         # Object tracking
         tracked_objs = tracker_instance.update(dets=det)
@@ -131,18 +131,27 @@ if __name__ == "__main__":
                 tracker_id=tracker_ids,
                 class_id=tracker_cls_ids
             )
-        
+
+        in_zone_mask = polygon_zone.trigger(detections=sv_detections)
+        for obj in tracked_objs:
+            if obj.is_being_tracked == False and obj.id in sv_detections.tracker_id[in_zone_mask]:
+                obj.is_being_tracked = True
+
+        visualized_tracked_objs = [obj for obj in tracked_objs if obj.is_being_tracked]
+        visualize_mask = np.isin(sv_detections.tracker_id, [obj.id for obj in visualized_tracked_objs])
+        visualized_sv_detections = sv_detections[visualize_mask]
+
         # Update frame buffer
         frame_buffer.append(frame.copy())
 
         # Update violation manager
-        violation_manager.update(vehicles=tracked_objs, sv_detections=sv_detections, frame=frame, frame_buffer=frame_buffer, fps=FPS, save_queue=violation_queue)
+        violation_manager.update(vehicles=visualized_tracked_objs, sv_detections=visualized_sv_detections, frame=frame, traffic_light_state=[None, 'RED', 'RED'], frame_buffer=frame_buffer, fps=FPS, save_queue=violation_queue)
         
-        draw_and_write_frame(tracked_objs, frame, sv_detections, box_annotator, label_annotator, video_writer)
+        draw_and_write_frame(visualized_tracked_objs, frame, visualized_sv_detections, box_annotator, label_annotator, video_writer)
 
         if args.save == "True":
             frame_num = i + 1
-            for obj in tracked_objs:
+            for obj in visualized_tracked_objs:
                 x1, y1, x2, y2 = map(float, obj.get_state()[0])
                 t_id = int(obj.id)
                 violated = 1 if getattr(obj, 'has_violated', False) else 0

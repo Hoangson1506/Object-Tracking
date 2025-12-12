@@ -84,7 +84,7 @@ def violation_save_worker(save_queue):
 
             client.save_proof(proof_crop, identifier, violation_type)
             client.save_retraining_data(frame, vehicle_id, bbox)
-            client.save_retraining_data(frame, identifier, violation_type, bbox)
+            client.save_labeled_proof(frame, identifier, violation_type, bbox)
             
             if frame_buffer:
                 client.save_video_proof(frame_buffer, identifier, violation_type, fps)

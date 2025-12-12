@@ -11,7 +11,11 @@ class Vehicle(KalmanBoxTracker):
         super().__init__(bbox, **kwargs)
 
         self.class_id = int(class_id)
+        self.is_being_tracked = False
         self.has_violated = False
+        self.straight_light_signal_when_crossing = None
+        self.going_straight = True
+        self.frame_of_violation = None
         self.violation_type = []
         self.violation_time = []
         self.license_plate = None
@@ -20,8 +24,9 @@ class Vehicle(KalmanBoxTracker):
     def mark_violation(self, violation_type, frame=None, padding=None, frame_buffer=None, fps=30, save_queue=None):
         if padding is None:
             padding = config['violation']['padding']
-        if not self.has_violated:
-            self.has_violated = True
+
+        if self.has_violated is True:
+            self.has_violated = None
             self.violation_type.append(violation_type)
             self.violation_time.append(time.time())
 
@@ -30,7 +35,7 @@ class Vehicle(KalmanBoxTracker):
                 h, w, _ = frame.shape
 
                 self.proof = frame[max(0, y1 - padding):min(h, y2 + padding),
-                                   max(0, x1 - padding):min(w, x2 + padding)].copy()
+                                    max(0, x1 - padding):min(w, x2 + padding)].copy()
                 
                 # Save proof and retraining data
                 identifier = self.license_plate if self.license_plate else self.id

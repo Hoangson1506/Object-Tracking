@@ -111,7 +111,7 @@ def generate_data_yaml(output_path, nc=1, names=None):
         f.write(f"names: {names}\n")
 
 
-def preprocess_detection_result(result, polygon_zone=None):
+def preprocess_detection_result(result):
     """Preprocess the YOLO/Roboflow detection result for tracking algorithm
 
     Args:
@@ -125,9 +125,6 @@ def preprocess_detection_result(result, polygon_zone=None):
     frame = result.orig_img.copy()
 
     dets = sv.Detections.from_ultralytics(result)
-    if polygon_zone is not None:
-        mask = polygon_zone.trigger(detections=dets)
-        dets = dets[mask]
     boxes = dets.xyxy
     conf = dets.confidence
     cls_id = dets.class_id

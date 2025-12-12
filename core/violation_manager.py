@@ -11,7 +11,7 @@ class ViolationManager:
         self.violation_count = {violation.name: 0 for violation in violations}
         self.violations = violations
 
-    def update(self, vehicles: List[Vehicle], sv_detections: Detections, frame, **kwargs):
+    def update(self, vehicles: List[Vehicle], sv_detections: Detections, frame, traffic_light_state, **kwargs):
         """
         Update violation of tracked vehicles
 
@@ -19,6 +19,6 @@ class ViolationManager:
             vehicles (List[Vehicle]): List of tracked vehicles
         """
         for violation in self.violations:
-            self.violation_count[violation.name] += len(violation.check_violation(vehicles, sv_detections, frame, **kwargs))
+            self.violation_count[violation.name] += len(violation.check_violation(vehicles, sv_detections, frame, traffic_light_state, **kwargs))
 
         return self.violation_count
