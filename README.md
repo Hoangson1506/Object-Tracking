@@ -54,11 +54,15 @@ Defines the road layout. You can generate this file using the interactive drawin
 ## Usage
 
 1. **Web Dashboard (Gradio)**
+
 The most user-friendly way to interact with the system.
+
 ```bash
 python app.py
 ```
+
 Access the dashboard at http://localhost:7860.
+
 **Features:**
 -   **Dashboard**: View system stats (connection to MinIO).
 -   **Visualization**: Start/Stop the live processing feed.
@@ -66,10 +70,13 @@ Access the dashboard at http://localhost:7860.
 -   **Settings**: Hot-swap confidence thresholds, FPS, and model paths.
 
 2. **CLI/Headless Mode**
+
 Run the processing pipeline directly on a video file or RTSP stream.
+
 ```bash
 python main.py --data_path data/traffic_video.avi --tracker bytetrack --save True
 ```
+
 **Arguments:**
 -   `--data_path`: Path to video file or RTSP URL (e.g., rtsp://localhost:8554/cam).
 -   `--vehicle_model`: Path to vehicle detection weights (default: detect_gtvn.pt).
