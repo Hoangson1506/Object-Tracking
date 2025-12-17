@@ -2,7 +2,7 @@ import supervision as sv
 import numpy as np
 from core.vehicle import Vehicle
 from typing import List
-from utils.drawing import draw_line_zone
+from utils import draw_line_zone
 
 class Violation:
     """Base class of all type of traffic violations

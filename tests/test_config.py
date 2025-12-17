@@ -1,7 +1,7 @@
 import pytest
 import os
 import yaml
-from utils.config import load_config
+from utils import load_config
 
 def test_load_config_success(tmp_path):
     # Create a dummy config file

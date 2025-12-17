@@ -37,3 +37,13 @@ violation:
   fps: 30
   padding: 30
   video_proof_duration: 3
+
+logging:
+  level: INFO           # DEBUG, INFO, WARNING, ERROR
+  console: true         # Enable colored console output
+  file: false           # Enable file logging
+  file_path: logs/      # Directory for log files
+  max_file_size: 10485760  # 10MB in bytes
+  backup_count: 3       # Number of backup log files to keep
+
+

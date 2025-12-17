@@ -225,28 +225,3 @@ def draw_line_zone(frame: np.ndarray, zone_name: str = "LINE_ZONE", window_name:
                 print(f"[{zone_name}] Lines saved.")
                 cv2.destroyWindow(window_name)
                 return drawing_points
-
-
-def render_frame(tracked_objs, frame, sv_detections, box_annotator, label_annotator, window_name="Traffic Violation Detection"):
-    """Process a single detection result, draws bbox, writes the frame
-
-    Args:
-        tracked_objs (KalmanBoxTracker): List of tracked objects 
-        frame (ArrayLike): The frame to write on
-        sv_detections (sv.Detections): Detections result in the supervision format
-        box_annotator (sv.BoxAnnotator)
-        label_annotator (sv.LabelAnnotator)
-    """
-    frame = box_annotator.annotate(
-        scene=frame,
-        detections=sv_detections
-    )
-
-    labels = [f"ID: {obj.id} {'[VIOLATION]' if len(obj.violation_type) > 0 else ''}" for obj in tracked_objs]
-    frame = label_annotator.annotate(
-        scene=frame,
-        detections=sv_detections,
-        labels=labels
-    )
-
-    return frame

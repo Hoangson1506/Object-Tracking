@@ -4,9 +4,7 @@ import numpy as np
 import json
 import os
 from core.traffic_system import TrafficSystem
-from utils.zones import save_zones, load_zones
-from utils.config import save_config
-from utils.storage import MinioClient
+from utils import save_zones, load_zones, save_config, MinioClient
 
 # Initialize System
 # TrafficSystem represents the physical detection system, so a single global instance is appropriate.

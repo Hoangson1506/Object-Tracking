@@ -7,7 +7,7 @@ import cv2
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from utils.storage import MinioClient
+from utils import MinioClient
 
 @pytest.fixture(scope="session")
 def minio_client():

@@ -175,8 +175,9 @@ class MinioClient:
                     else:
                         # No bbox for this frame, draw using last known bbox
                         previous = [k for k in bbox_map.keys() if k <= frame_counter]
+                        bbox = None
                         if len(previous) > 0:
-                            bbox = bbox_map.get(max(), None)
+                            bbox = bbox_map.get(max(previous), None)
                         if bbox:
                             x1, y1, x2, y2 = map(int, bbox)
                             cv2.rectangle(draw_frame, (x1, y1), (x2, y2), (0, 0, 255), 2)

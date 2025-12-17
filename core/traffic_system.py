@@ -15,13 +15,15 @@ from core.vehicle import Vehicle
 from core.violation import RedLightViolation
 from core.violation_manager import ViolationManager
 from core.license_plate_recognizer import LicensePlateRecognizer
-from utils.config import load_config
-from utils.io import violation_save_worker
-from detect.utils import preprocess_detection_result
-from utils.zones import load_zones
-from utils.drawing import render_frame
 from core.light_signal_detector import LightSignalDetector
 from core.light_signal_FSM import LightSignalFSM
+from utils import (
+    load_config,
+    violation_save_worker,
+    load_zones,
+    render_frame,
+) 
+from detect.utils import preprocess_detection_result
 
 class TrafficSystem:
     def __init__(self, config_path="config.yaml"):

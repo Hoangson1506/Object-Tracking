@@ -4,16 +4,18 @@ from track.sort import SORT
 from track.bytetrack import ByteTrack
 from detect.detect import inference_video
 from core.vehicle import Vehicle
-from utils.parse_args import parse_args_tracking
-from utils.drawing import draw_polygon_zone, render_frame
-from utils.io import handle_result_filename, violation_save_worker
+from utils import (
+    parse_args_tracking,
+    draw_polygon_zone, render_frame,
+    handle_result_filename, violation_save_worker,
+    load_config
+)
 from detect.utils import preprocess_detection_result
 from core.violation import RedLightViolation
 from core.violation_manager import ViolationManager
 from core.license_plate_recognizer import LicensePlateRecognizer
 from core.light_signal_detector import LightSignalDetector
 from core.light_signal_FSM import LightSignalFSM
-from utils.config import load_config
 import cv2
 import numpy as np
 import supervision as sv

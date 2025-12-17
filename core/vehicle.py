@@ -1,7 +1,6 @@
 from track.kalman_box_tracker import KalmanBoxTracker
 import time
-from utils.storage import MinioClient
-from utils.config import load_config
+from utils import MinioClient, load_config
 
 # Load config once
 config = load_config()
