@@ -31,6 +31,19 @@ class SORT(BaseTracker):
         
         cost_matrix = self.cost_function(detections[:, np.newaxis], trackers[np.newaxis, :])
 
+        # Apply class constraint
+        # detections: [x1, y1, x2, y2, score, class_id]
+        # trackers: [x1, y1, x2, y2, class_id]
+        det_cls = detections[:, 5]
+        trk_cls = trackers[:, 4]
+        
+        # Create a mask where classes match (1 if match, 0 if not)
+        # We need to broadcast to shape (num_dets, num_tracks)
+        class_match_mask = (det_cls[:, np.newaxis] == trk_cls[np.newaxis, :])
+        
+        # Set IOU to 0 where classes don't match
+        cost_matrix = cost_matrix * class_match_mask
+
         if min(cost_matrix.shape) > 0:
             a = (cost_matrix > self.iou_threshold).astype(np.int32)
             if a.sum(1).max() == 1 and a.sum(0).max() == 1:

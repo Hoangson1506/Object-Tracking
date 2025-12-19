@@ -34,6 +34,12 @@ class ByteTrack(BaseTracker):
 
         if len(high_conf_dets) > 0:
             high_conf_iou_matrix = self.cost_function(high_conf_dets[:, np.newaxis], trackers[np.newaxis, :])
+            
+            # Class constraint for high conf detections
+            det_cls = high_conf_dets[:, 5]
+            trk_cls = trackers[:, 4]
+            class_match_mask = (det_cls[:, np.newaxis] == trk_cls[np.newaxis, :])
+            high_conf_iou_matrix = high_conf_iou_matrix * class_match_mask
 
             if min(high_conf_iou_matrix.shape) > 0:
                 a = (high_conf_iou_matrix > self.high_conf_iou_threshold).astype(np.int32)
@@ -61,6 +67,12 @@ class ByteTrack(BaseTracker):
 
         if len(low_conf_dets) > 0 and len(unmatched_trackers) > 0:
             low_conf_iou_matrix = self.cost_function(low_conf_dets[:, np.newaxis], trackers[unmatched_trackers][np.newaxis, :])
+            
+            # Class constraint for low conf detections
+            det_cls = low_conf_dets[:, 5]
+            trk_cls = trackers[unmatched_trackers][:, 4]
+            class_match_mask = (det_cls[:, np.newaxis] == trk_cls[np.newaxis, :])
+            low_conf_iou_matrix = low_conf_iou_matrix * class_match_mask
 
             if min(low_conf_iou_matrix.shape) > 0:
                 a = (low_conf_iou_matrix > self.low_conf_iou_threshold).astype(np.int32)
@@ -108,7 +120,7 @@ class ByteTrack(BaseTracker):
 
         for i in range(len(tracks)):
             pos = self.trackers[i].predict()[0]
-            tracks[i, :] = [pos[0], pos[1], pos[2], pos[3], 0]
+            tracks[i, :] = [pos[0], pos[1], pos[2], pos[3], self.trackers[i].class_id]
             if np.any(np.isnan(pos)):
                 to_del.append(i)
 

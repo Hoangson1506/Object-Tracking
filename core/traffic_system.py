@@ -203,7 +203,8 @@ class TrafficSystem:
             classes=self.config['detections']['classes'],
             imgsz=self.config['detections']['imgsz'],
             iou_threshold=self.config['detections']['iou_threshold'],
-            stream_buffer=False
+            stream_buffer=False,
+            verbose=True
         )
 
         first_run = True

@@ -46,7 +46,7 @@ class BaseTracker:
 
         for i in range(len(tracks)):
             pos = self.trackers[i].predict()[0]
-            tracks[i, :] = [pos[0], pos[1], pos[2], pos[3], 0]
+            tracks[i, :] = [pos[0], pos[1], pos[2], pos[3], self.trackers[i].class_id]
             if np.any(np.isnan(pos)):
                 to_del.append(i)
 
