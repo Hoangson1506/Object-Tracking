@@ -43,9 +43,6 @@ opencv-python==4.12.0.88
 opt-einsum==3.3.0
 orjson==3.11.5
 packaging==25.0
-paddleocr==3.3.2
-paddlepaddle==3.2.0
-paddlex==3.3.11
 pandas==2.3.3
 pillow==12.0.0
 pluggy==1.6.0
@@ -95,9 +92,13 @@ typer==0.20.0
 typer-slim==0.20.0
 typing-inspection==0.4.2
 typing_extensions==4.15.0
+tzdata==2025.2
+ujson==5.11.0
 ultralytics==8.3.237
 ultralytics-thop==2.0.18
 urllib3==2.6.2
 uvicorn==0.38.0
 wcwidth==0.2.14
 yarl==1.22.0
+colorama
+fast-plate-ocr[onnx-gpu]

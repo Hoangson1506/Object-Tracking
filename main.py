@@ -1,5 +1,5 @@
 from ultralytics import YOLO
-from paddleocr import PaddleOCR
+from fast_plate_ocr import LicensePlateRecognizer as FastRecognizer
 from track.sort import SORT
 from track.bytetrack import ByteTrack
 from detect.detect import inference_video
@@ -79,8 +79,7 @@ def main():
     data_path = args.data_path
     vehicle_model = YOLO(args.vehicle_model, task='detect', verbose=False)
     license_model = YOLO(args.license_model, task='detect', verbose=False)
-    # character_model = YOLO(args.character_model, task='detect', verbose=True)
-    character_model = PaddleOCR(use_angle_cls=True, lang='en')
+    character_model = FastRecognizer('cct-xs-v1-global-model')
     
     device = args.device
     violation_queue = queue.Queue()

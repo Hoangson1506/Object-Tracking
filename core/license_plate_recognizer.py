@@ -1,4 +1,3 @@
-import cv2
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -16,7 +15,6 @@ class LicensePlateRecognizer:
         Detect + OCR license plate for a single vehicle
         Returns candidate license plate string (NOT final)
         """
-        print('update_license')
         if frame is None:
             return None
 
@@ -33,7 +31,7 @@ class LicensePlateRecognizer:
 
         results = self.license_model.predict(crop, verbose=False)
         if len(results) == 0 or len(results[0].boxes) == 0:
-            print('0 results')
+            print('Cannot DETECT any license plates ')
             return None
 
         box = max(results[0].boxes, key=lambda b: b.conf)[0]
@@ -44,45 +42,13 @@ class LicensePlateRecognizer:
             return None
 
         plate_text = self._ocr(lp_crop)
-
+        print(plate_text)
         if plate_text is None or len(plate_text) <= 3:
-            print("Cannot recognize plate")
+            print("Cannot RECOGNIZE license plates")
             return None
         print(plate_text)
         return plate_text
 
 
-    def _ocr(self, lp_img, min_score=0.5):
-        lp_rgb = cv2.cvtColor(lp_img, cv2.COLOR_BGR2RGB)
-
-        results = self.character_model.predict(lp_rgb)
-        if not results:
-            return ""
-
-        res = results[0]
-
-        texts  = res["rec_texts"]
-        scores = res["rec_scores"]
-        boxes  = res["rec_boxes"]
-
-        if not texts:
-            return ""
-
-        merged = []
-        for text, score, box in zip(texts, scores, boxes):
-            if score < min_score:
-                continue
-
-            x1, y1, x2, y2 = box
-            merged.append((text, score, y1, x1))
-
-        if not merged:
-            return ""
-
-        merged_sorted = sorted(merged, key=lambda x: (x[2], x[3]))
-
-        sorted_texts = [m[0] for m in merged_sorted]
-
-        final_text = "".join(sorted_texts)
-
-        return final_text
+    def _ocr(self, lp_img):
+        return self.character_model.run(lp_img)[0].rstrip("_")
