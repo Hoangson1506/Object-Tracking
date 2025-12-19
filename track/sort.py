@@ -36,7 +36,7 @@ class SORT(BaseTracker):
         # trackers: [x1, y1, x2, y2, class_id]
         det_cls = detections[:, 5]
         trk_cls = trackers[:, 4]
-        
+
         # Create a mask where classes match (1 if match, 0 if not)
         # We need to broadcast to shape (num_dets, num_tracks)
         class_match_mask = (det_cls[:, np.newaxis] == trk_cls[np.newaxis, :])

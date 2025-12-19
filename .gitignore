@@ -69,4 +69,3 @@ credentials.json
 
 # Model weights and results
 *.csv
-*.pt

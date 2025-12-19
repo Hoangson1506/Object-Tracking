@@ -319,8 +319,8 @@ with gr.Blocks(title="Traffic Violation Detection System", theme=gr.themes.Soft(
                 tracker_input = gr.Dropdown(["sort", "bytetrack"], label="Tracker", value=system.config.get('system', {}).get('tracker', 'bytetrack'))
             
             with gr.Row():
-                vehicle_model_input = gr.Textbox(label="Vehicle Model Path", value=system.config.get('system', {}).get('vehicle_model', 'detect_gtvn.pt'))
-                license_model_input = gr.Textbox(label="License Plate Model Path", value=system.config.get('system', {}).get('license_model', 'lp_yolo11s.pt'))
+                vehicle_model_input = gr.Textbox(label="Vehicle Model Path", value=system.config.get('system', {}).get('vehicle_model', 'models/detect_gtvn.pt'))
+                license_model_input = gr.Textbox(label="License Plate Model Path", value=system.config.get('system', {}).get('license_model', 'models/lp_yolo11s.pt'))
             
             with gr.Row():
                 conf_slider = gr.Slider(0.0, 1.0, value=system.config['detections']['conf_threshold'], label="Confidence Threshold")

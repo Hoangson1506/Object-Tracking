@@ -34,9 +34,9 @@ class TrafficSystem:
         print("Loading models...")
         self.device = self.config.get('system', {}).get('device', 'cuda') if torch.cuda.is_available() else 'cpu'
         
-        self.vehicle_model_path = self.config.get('system', {}).get('vehicle_model', "detect_gtvn.pt")
-        self.license_model_path = self.config.get('system', {}).get('license_model', "lp_yolo11s.pt")
-        # self.character_model_path = self.config.get('system', {}).get('character_model', "yolo11s.pt") # Unused?
+        self.vehicle_model_path = self.config.get('system', {}).get('vehicle_model', "models/detect_gtvn.pt")
+        self.license_model_path = self.config.get('system', {}).get('license_model', "models/lp_yolo11s.pt")
+        # self.character_model_path = self.config.get('system', {}).get('character_model', "models/yolo11s.pt") # Unused?
         
         self.vehicle_model = YOLO(self.vehicle_model_path, task='detect', verbose=False)
         self.license_model = YOLO(self.license_model_path, task='detect', verbose=False)

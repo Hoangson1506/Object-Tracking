@@ -11,19 +11,19 @@ def parse_args_tracking():
     parser.add_argument(
         "--vehicle_model",
         type=str,
-        default="detect_gtvn.pt",
+        default="models/detect_gtvn.pt",
         help="Path to vehicle detection model weights."
     )
     parser.add_argument(
         "--license_model",
         type=str,
-        default="lp_yolo11s.pt",
+        default="models/lp_yolo11s.pt",
         help="Path to license detection model weights."
     )
     parser.add_argument(
         "--character_model",
         type=str,
-        default="yolo11s.pt",
+        default="models/yolo11s.pt",
         help="Path to character detection model weights."
     )
     parser.add_argument(
